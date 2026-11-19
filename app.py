@@ -13,11 +13,18 @@ st.markdown(
     <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700;800&display=swap');
     html, body, [class*="css"] { font-family: 'DM Sans','Noto Sans Telugu',sans-serif; }
-    .stApp { background: #f7f8fa; }
-    .hero { padding: 2.2rem 2.4rem; border-radius: 24px; color: white;
-        background: linear-gradient(115deg,#101a2d,#193b48 62%,#e78347); margin: .5rem 0 1.4rem; }
-    .hero h1 { font-size: clamp(2rem,4vw,3.1rem); margin: 0 0 .45rem; color: white; }
-    .hero p { font-size: 1.05rem; color: #e6eef0; margin: 0; }
+    html, body, [data-testid="stAppViewContainer"], .stApp { background: #f5f7fa !important; color: #172033 !important; }
+    [data-testid="stHeader"] { background: transparent !important; }
+    .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], label, p, h1, h2, h3 { color: #263449; }
+    .hero { padding: 2.5rem 2.7rem; border-radius: 24px; color: white;
+        background: linear-gradient(115deg,#101a2d,#193b48 62%,#e78347); margin: .5rem 0 1.15rem; box-shadow:0 14px 35px #16243b18; }
+    .hero .eyebrow { text-transform:uppercase; letter-spacing:.13em; font-size:.76rem; font-weight:700; color:#bce9dd; margin-bottom:.65rem; }
+    .hero h1 { font-size: clamp(2rem,4vw,3.1rem); margin: 0 0 .45rem; color: white !important; }
+    .hero p { font-size: 1.05rem; color: #e6eef0 !important; margin: 0; }
+    div[data-testid="stLinkButton"] a { background:#fff !important; color:#18334a !important; border:1px solid #dce4eb !important; border-radius:13px !important; font-weight:700 !important; min-height:50px; box-shadow:0 3px 12px #16243b0b; }
+    div[data-testid="stLinkButton"] a:hover { background:#eaf5f1 !important; border-color:#7eb6a7 !important; color:#123a39 !important; }
+    div[data-testid="stTextInput"] input { background:white !important; color:#172033 !important; border-radius:12px !important; }
+    [data-testid="stAlert"] { border-radius:14px; }
     .deal { background: white; border: 1px solid #e8eaee; border-radius: 18px; padding: 1rem;
         margin-bottom: .8rem; min-height: 295px; box-shadow: 0 5px 20px #15233a0a; }
     .deal img { width: 100%; height: 168px; object-fit: contain; border-radius: 12px; background:#f7f8fa; }
@@ -92,11 +99,10 @@ def render_card(deal):
 
 
 st.markdown(
-    '<div class="hero"><h1>🛍️ Smart Shopping with Sai</h1><p>Amazonలో ఈరోజు offers వెతకండి · మీకు నచ్చిన category ఎంచుకోండి.</p></div>',
+    '<div class="hero"><div class="eyebrow">SMART FINDS · AMAZON INDIA</div><h1>🛍️ Smart Shopping with Sai</h1><p>రోజువారీ offers, ఉపయోగకరమైన picks — మీకు నచ్చిన category నుంచి మొదలుపెట్టండి.</p></div>',
     unsafe_allow_html=True,
 )
-st.caption("As an Amazon Associate I earn from qualifying purchases.")
-st.caption("గమనిక: Amazon‌కు వెళ్లే లింకులు affiliate links కావచ్చు (paid links). ధరలు, stock మారవచ్చు; కొనుగోలు ముందు Amazonలో తనిఖీ చేయండి.")
+st.info("As an Amazon Associate I earn from qualifying purchases. Amazon‌కు వెళ్లే ప్రతి link affiliate paid link కావచ్చు. ధరలు, stock మారవచ్చు; కొనుగోలు ముందు Amazonలో తనిఖీ చేయండి.", icon="ℹ️")
 
 # Temporary starter links based on the Store ID visible in the supplied screenshot.
 tracking_id = "mrvnsai-21"
@@ -119,11 +125,16 @@ for start in range(0, len(starter_links), 3):
 
 try:
     deals = load_deals()
+    db_error = None
 except Exception as exc:
-    st.error("Supabase‌కు కనెక్ట్ కాలేకపోయాం. Streamlit Secrets మరియు Supabase setup తనిఖీ చేయండి.")
-    with st.expander("సాంకేతిక వివరాలు"):
-        st.code(str(exc))
-    st.stop()
+    deals = []
+    db_error = str(exc)
+    if config_value("SUPABASE_URL") and config_value("SUPABASE_KEY"):
+        st.warning("ప్రస్తుతం Supabase deals లోడ్ కాలేదు. తాత్కాలిక category links ఉపయోగించవచ్చు.")
+        with st.expander("సాంకేతిక వివరాలు"):
+            st.code(db_error)
+    else:
+        st.caption("తాత్కాలిక links సిద్ధంగా ఉన్నాయి. Dealలను Supabase నుంచి చూపించడానికి Streamlit Secrets setup చేయండి.")
 
 categories = sorted({d.get("category", "Other") or "Other" for d in deals})
 left, right = st.columns([3, 1])
