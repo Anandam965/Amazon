@@ -1,6 +1,6 @@
 import os
 from html import escape
-from urllib.parse import urlparse
+from urllib.parse import quote_plus, urlparse
 
 import streamlit as st
 from supabase import Client, create_client
@@ -92,11 +92,30 @@ def render_card(deal):
 
 
 st.markdown(
-    '<div class="hero"><h1>🛍️ Mana Deals</h1><p>ఈరోజు మంచి offers, ఒకే చోట. మీకు నచ్చిన deal‌ను ఎంచుకోండి.</p></div>',
+    '<div class="hero"><h1>🛍️ Smart Shopping with Sai</h1><p>Amazonలో ఈరోజు offers వెతకండి · మీకు నచ్చిన category ఎంచుకోండి.</p></div>',
     unsafe_allow_html=True,
 )
 st.caption("As an Amazon Associate I earn from qualifying purchases.")
 st.caption("గమనిక: Amazon‌కు వెళ్లే లింకులు affiliate links కావచ్చు (paid links). ధరలు, stock మారవచ్చు; కొనుగోలు ముందు Amazonలో తనిఖీ చేయండి.")
+
+# Temporary starter links based on the Store ID visible in the supplied screenshot.
+tracking_id = "mrvnsai-21"
+starter_links = [
+    ("📱 మొబైళ్లు", "smartphones"),
+    ("🎧 Earbuds", "wireless earbuds"),
+    ("💻 Laptops", "laptops"),
+    ("🍳 Kitchen", "kitchen appliances"),
+    ("🏠 Home", "home essentials"),
+    ("⌚ Smart Watches", "smart watches"),
+]
+st.subheader("Amazon Quick Links")
+st.caption("తాత్కాలిక links · Amazon search ఫలితాలు తెరుచుకుంటాయి; ఇవి నిర్దిష్ట deal లేదా ధరకు హామీ కావు.")
+for start in range(0, len(starter_links), 3):
+    cols = st.columns(3, gap="medium")
+    for col, (label, term) in zip(cols, starter_links[start : start + 3]):
+        with col:
+            amazon_url = f"https://www.amazon.in/s?k={quote_plus(term)}&tag={tracking_id}"
+            st.link_button(f"{label} ↗", amazon_url, use_container_width=True)
 
 try:
     deals = load_deals()
